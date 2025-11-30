@@ -16,10 +16,153 @@ Lets just collectively agree that it just works, okay?
 
 
 
+class sbttl:
+    def __init__(self, script_version = str):
+        self.script_version = script_version
+    def load(self, file_path = str):
+
+        times = len(file_path)-1
+        while True:
+            times -= 1
+            if str(file_path).find('\\',times,len(file_path)) != -1 or str(file_path).find('/',times,len(file_path)) != -1:
+                break
+        times += 1
+        chosensave_name = file_path[times:len(file_path)]
+        chosensave_folder = file_path[0:times]
+
+        savefile = open(file_path,'r',encoding='utf-8').readlines()
+        saveversion = savefile[0][9:len(savefile[0])-1]
+
+        if saveversion == 'b0.1.0':
+            
+            global songbpm
+            global offset
+            global markedlistmsandtext
+            global songlengthms
+            global beatsmode
+            global songfiledir
+            global songchannel
+
+            startpos_line = 0
+            while savefile[startpos_line] != 'start\n':
+                startpos_line += 1
+
+            savesong = str(savefile[startpos_line + 1][10:len(savefile[startpos_line + 1])-1])
+            songfiledir = str(chosensave_folder)+str(savesong)
+
+            savebpm = float(savefile[startpos_line + 2][5:len(savefile[startpos_line + 2])-1])
+
+            saveoffset = int(savefile[startpos_line + 3][8:len(savefile[startpos_line + 3])-1])
+
+            savebeatsmode = str(savefile[startpos_line + 4][11:len(savefile[startpos_line + 4])-1])
+            
+            markspos = startpos_line + 5
+
+            savemarksmsandtext = []
+
+            while savefile[markspos] != 'end\n':
+                times = 0
+                while savefile[markspos][times] != ' ':
+                    times += 1
+                    print(str(markspos)+' '+str(times))
+
+
+                savemarksmsandtext.append([float(savefile[markspos][0:times]),str(savefile[markspos][times+1:len(savefile[markspos])-1])])
+
+                markspos += 1
+
+            markedlistmsandtext = savemarksmsandtext
+
+            offset = saveoffset
+            songbpm = savebpm
+            beatsmode = savebeatsmode
+
+            songchannel = pygame.mixer.music
+            songlengthms = pygame.mixer.Sound(str(chosensave_folder)+str(savesong)).get_length() * 1000
+            songchannel.load(str(chosensave_folder)+str(savesong))
+            songchannel.play(0,0)
+            songchannel.pause()
+
+            bpmupdate(songbpm)
+
+            pygame.display.set_caption(chosensave_name)
 
 
 
-def sbttl_file_load_scene(version):
+    def save(self,savefile_path = str, bpm = float, offset = int, beatsmode = str, markslist = list, songdir = str, ):
+        if self.script_version == 'b0.1.0':
+            times = 0
+            markslist_lines = ''
+            while times < len(markslist): 
+                markslist_lines = markslist_lines+str(float(markslist[times][0]))+' '+str(markslist[times][1])+'\n'
+                times += 1
+
+
+            times = len(songdir)-1
+            while True:
+                times -= 1
+                if str(songdir).find('\\',times,len(songdir)) != -1 or str(songdir).find('/',times,len(songdir)) != -1:
+                    break
+            times += 1
+            songname = songdir[times:len(songdir)]
+
+            times = len(savefile_path)-1
+            while True:
+                times -= 1
+                if str(savefile_path).find('\\',times,len(savefile_path)) != -1 or str(savefile_path).find('/',times,len(savefile_path)) != -1:
+                    break
+            times += 1
+            savefile_dir_folder = savefile_path[0:times]
+            savefile_name = savefile_path[times:len(savefile_path)]
+
+            littledevletter = "So you're really curious, huh?\nGo on, do whatever you want and have fun! ^^\nThis program is a tool after all, right?\n\nDon't mind me, Im just gonna make a silly advertisement of me in this file. Please don't delete it, it would be really rude of you :(. Ahem...\n\nThis tool is made by @JakeIsAlivee\nuh...\nThe nickname is usually @JakeIsAlivee on all platforms...\nuh...\nPlease consider supporting me, either by words or giving me money, I will accept your support in any way ^^\n\n\n\n\n"
+
+            sbttlfile_data = str('VERSION: '+self.script_version+'\n\n\n'+
+                                 littledevletter+
+                                 'start\n'+
+                                 'Songname: '+songname+'\n'+
+                                 'bpm: '+str(bpm)+'\n'+
+                                 'offset: '+str(offset)+'\n'+
+                                 'beatsmode: '+str(beatsmode)+'\n'+
+                                 markslist_lines+
+                                 'end\n')
+            
+            if savefile_dir_folder.find(savefile_name[0:len(savefile_name)-6]) == -1:
+                    
+                try:
+                    os.mkdir(savefile_dir_folder+savefile_name[0:len(savefile_name)-6])
+                except FileExistsError:
+                    pass
+
+                try:
+                    open(savefile_dir_folder+savefile_name[0:len(savefile_name)-6]+slash+songname,'wb').writelines(open(songdir,'rb').readlines())
+                except PermissionError:
+                    pass
+
+                open(savefile_dir_folder+savefile_name[0:len(savefile_name)-6]+slash+savefile_name,'w',encoding='utf-8').writelines(sbttlfile_data)
+            else:
+                try:
+                    open(savefile_dir_folder+songname,'wb').writelines(open(songdir,'rb').readlines())
+                except PermissionError:
+                    pass
+                open(savefile_dir_folder+savefile_name,'w',encoding='utf-8').writelines(sbttlfile_data)
+                
+            pygame.display.set_caption(savefile_name)
+
+
+
+class BPMS:
+    def __init__(self):
+        self.bpmslist = []
+    def set_parameters(bpmnum = int, bpm = float, offset = int, beatmode = str, lastallbeat = int, lastmainbeat = int, beatnum = int):
+        pass
+        
+        #      offset bpm beatm lm la bn
+
+
+
+
+def sbttl_file_load_scene(version = str, newproject = False):
     global songbpm
     global offset
     global markedlistmsandtext
@@ -35,6 +178,7 @@ def sbttl_file_load_scene(version):
         if chosensave[len(chosensave)-6:len(chosensave)] != '.sbttl':
             chosensave = easygui.filesavebox(title='Choose your .sbttl file',msg='Please choose a .sbttl file',default=scriptdirfolder+slash+'*.sbttl')
             continue
+        
         else:
 
             times = len(chosensave)-1
@@ -273,12 +417,12 @@ def bpmupdate(bpm):
         mainbeatmarkpixels = [0]
 
 bpms = [[None,None,'1/1',0,0,4]]
+#      offset bpm beatm lm la bn
 
 
 
 
-
-EDITORVERSION = 'b0.1.0'
+EDITORVERSION = 'b0.1.2'
 
 #dir of this script
 scriptdirfolder = os.path.dirname(os.path.realpath(__file__))
@@ -320,7 +464,7 @@ lillilfont = pygame.font.SysFont('couriernew', 16)
 #120bpm : 60s = 2
 #1000ms : 2 = 500ms - duration
 
-description = 'Choose the song (.mp3)'
+description = 'Choose the song or a subtitle file (.mp3 or .sbttl)'
 while True:
 
     chosenfile = easygui.fileopenbox(description,'Editor')
@@ -333,13 +477,13 @@ while True:
         newproject = True
         break
 
-    #if str(chosenfile)[len(str(chosenfile))-6:len(str(chosenfile))] == '.sbttl':
-        #sbttl_file_load_scene(EDITORVERSION)
-        #newproject = False
-        #break
+    if str(chosenfile)[len(str(chosenfile))-6:len(str(chosenfile))] == '.sbttl':
+        sbttl(EDITORVERSION).load(chosenfile)
+        newproject = False
+        break
 
     else:
-        description = 'You need to choose an .mp3 file to continue'
+        description = 'You need to choose an .mp3 or .sbttl file to continue'
         continue
 
 devmode = False
@@ -427,6 +571,7 @@ bpmupdate(songbpm)
 
 def bpmgraphframe():
     
+
     pygame.draw.polygon(window,(50,50,50),[(0,0),(512,0),(512,63),(0,63),(0,0)])
 
     middlesignup = lillilfont.render('>',False,(255,255,255))
@@ -441,56 +586,92 @@ def bpmgraphframe():
 
 
             
+    if songbpm != None:
+        timesstart = 0
+        timesend = 0
+        
+        try:
+            nextbpmstart = bpms[currentbpm+1][0]
+        except IndexError:
+            nextbpmstart = songlengthms
+
+        while True:
+            try:
+                if mainbeatmarkms[timesstart] < offset:
+                    timesstart += 1
+                    continue
+                if mainbeatmarkpixels[timesstart]/2*zoomuserpreference < int(visualposition-256):
+                    timesstart += 1
+                    timesend = timesstart
+                    continue
+                elif mainbeatmarkms[timesend] > nextbpmstart:
+                    break
+                elif mainbeatmarkpixels[timesend]/2*zoomuserpreference > int(visualposition+256):
+                    break
+
+                timesend += 1
+            except IndexError:
+                break
+
+        times = timesstart-1
+
+        while times < timesend:
+            try:
+                pygame.draw.line(window,(255,255,255),(256-visualposition+float(mainbeatmarkpixels[times]/2) * zoomuserpreference,0), (256-visualposition+float(mainbeatmarkpixels[times]/2) * zoomuserpreference,0+64),1)
+
+                times += 1
+            except IndexError:
+                break
 
 
-    times = 0
-    while True:
-        try:
-            pygame.draw.line(window,(255,255,255),(256-visualposition+float(mainbeatmarkpixels[times]/2) * zoomuserpreference,0), (256-visualposition+float(mainbeatmarkpixels[times]/2) * zoomuserpreference,0+64),1)
-            
-            times += 1
-        except IndexError:
-            times = 0
-            break
-    while True:
-        try:
-            pygame.draw.line(window,(255,0,0),(256-visualposition+float(halfbeatmarkpixels[times]/2) * zoomuserpreference,8), (256-visualposition+float(halfbeatmarkpixels[times]/2) * zoomuserpreference,0+56),1)
-            
-            times += 1
-        except IndexError:
-            times = 0
-            break
-    while True:
-        try:
-            pygame.draw.line(window,(0,0,255),(256-visualposition+float(doublehalfbeatmarkpixels[times]/2) * zoomuserpreference,16), (256-visualposition+float(doublehalfbeatmarkpixels[times]/2) * zoomuserpreference,0+48),1)
-            
-            times += 1
-        except IndexError:
-            times = 0
-            break
-    while True:
-        try:
-            pygame.draw.line(window,(255,255,0),(256-visualposition+float(triplehalfbeatmarkpixels[times]/2) * zoomuserpreference,32), (256-visualposition+float(triplehalfbeatmarkpixels[times]/2) * zoomuserpreference,0+32),1)
-            
-            times += 1
-        except IndexError:
-            times = 0
-            break
+            except IndexError:
+                break
+                #try:
+                #    pygame.draw.line(window,(255,255,255),(256-visualposition+float(mainbeatmarkpixels[times]/2) * zoomuserpreference,0), (256-visualposition+float(mainbeatmarkpixels[times]/2) * zoomuserpreference,0+64),1)
+                #    times += 1
+                #except IndexError:
+                #    times = 0
+                #    break
+
+    #while True:
+    #    try:
+    #        pygame.draw.line(window,(255,0,0),(256-visualposition+float(halfbeatmarkpixels[times]/2) * zoomuserpreference,8), (256-visualposition+float(halfbeatmarkpixels[times]/2) * zoomuserpreference,0+56),1)
+    #        
+    #        times += 1
+    #    except IndexError:
+    #        times = 0
+    #        break
+    #while True:
+    #    try:
+    #        pygame.draw.line(window,(0,0,255),(256-visualposition+float(doublehalfbeatmarkpixels[times]/2) * zoomuserpreference,16), (256-visualposition+float(doublehalfbeatmarkpixels[times]/2) * zoomuserpreference,0+48),1)
+    #        
+    #        times += 1
+    #    except IndexError:
+    #        times = 0
+    #        break
+    #while True:
+    #    try:
+    #        pygame.draw.line(window,(255,255,0),(256-visualposition+float(triplehalfbeatmarkpixels[times]/2) * zoomuserpreference,32), (256-visualposition+float(triplehalfbeatmarkpixels[times]/2) * zoomuserpreference,0+32),1)
+    #        
+    #        times += 1
+    #    except IndexError:
+    #        times = 0
+    #        break
     
 
 
 
 
-    while True:
-        try:
-            pygame.draw.line(window,(255,0,0),(261-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,0),  (257-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,6),1)
-            pygame.draw.line(window,(255,0,0),(257-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,57), (261-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,64),1)
-            pygame.draw.line(window,(255,0,0),(251-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,0),  (255-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,6),1)
-            pygame.draw.line(window,(255,0,0),(255-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,57), (251-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,64),1)
-            times += 1
-        except IndexError:
-            times = 0
-            break
+    #while True:
+    #    try:
+    #        pygame.draw.line(window,(255,0,0),(261-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,0),  (257-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,6),1)
+    #        pygame.draw.line(window,(255,0,0),(257-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,57), (261-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,64),1)
+    #        pygame.draw.line(window,(255,0,0),(251-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,0),  (255-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,6),1)
+    #        pygame.draw.line(window,(255,0,0),(255-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,57), (251-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,64),1)
+    #        times += 1
+    #    except IndexError:
+    #        times = 0
+    #        break
     
 
     pygame.draw.polygon(window,(255,255,255),[(0,0),(16,0),(16,32),(0,32),(0,0)])
@@ -506,7 +687,8 @@ def bpmgraphframe():
         pygame.draw.lines(window,(255,0,0),False,[(1,1),(1,15),(15,15),(15,1),(1,1)]) #+
         pygame.draw.lines(window,(255,0,0),False,[(1,17),(1,31),(15,31),(15,17),(1,17)]) #-
 
-    pygame.draw.line(window,(100,100,100),(256-visualposition+0,0), (256-visualposition+0,0+64),1)
+    pygame.draw.line(window,(100,100,100),(256-visualposition+0*zoomuserpreference,0), (256-visualposition+0*zoomuserpreference,0+64),1)
+    pygame.draw.line(window,(100,100,100),(256-visualposition+songlengthms/2*zoomuserpreference,0), (256-visualposition+songlengthms/2*zoomuserpreference,0+64),1)
     
 
 
@@ -987,8 +1169,13 @@ def sbttl_file_save_scene(version = str, songdir = str, bpm = float, offset = st
             break
 
 
+
+
+
 while True:
     try:
+        #this does NOT work right now
+        #spoiler: the code is ass
         if settingsmenu:
 
             if settingsdarknessfadein < 200:
@@ -1344,7 +1531,11 @@ while True:
                         lastmainbeatmark = bpms[currentbpm][3]
                         lastallbeatmark = bpms[currentbpm][4]
                         beatnum = bpms[currentbpm][5]
+                        
                         bpmupdate(songbpm)
+
+                        songstartpoint = allbeatmarksms[lastallbeatmark-1]
+                        
                     except IndexError:
                         currentbpm += 1
                         offset = bpms[currentbpm][0]
@@ -1397,6 +1588,7 @@ while True:
             marknum = 0
             songposition = songchannel.get_pos() + songstartpoint
             visualposition = float(songposition / 2) * zoomuserpreference
+
 
             if songposition > songlengthms:
                 songchannel.pause()
@@ -2099,6 +2291,11 @@ while True:
                                 eventpos = []
                                 eventpos.append(event.pos[0])
                                 eventpos.append(event.pos[1])
+                        if not windowscaled:
+                            eventpos = []
+                            eventpos.append(event.pos[0])
+                            eventpos.append(event.pos[1])
+
 
                         if buttonsmode == 'volume':
                             if eventpos[0] > 439 and eventpos[0] < 477 and eventpos[1] > 339 and eventpos[1] < 486: #sfx scroll
@@ -2394,6 +2591,11 @@ while True:
                                 eventpos = []
                                 eventpos.append(event.pos[0])
                                 eventpos.append(event.pos[1])
+                        
+                        if not windowscaled:
+                            eventpos = []
+                            eventpos.append(event.pos[0])
+                            eventpos.append(event.pos[1])
 
                         if buttonsmode == 'volume':
                             if eventpos[0] > 439 and eventpos[0] < 477 and eventpos[1] > 339 and eventpos[1] < 486: #sfx scroll
