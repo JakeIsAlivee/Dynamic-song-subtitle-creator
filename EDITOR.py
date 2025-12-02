@@ -152,12 +152,195 @@ class sbttl:
 
 
 class BPMS:
+    """
+    Automatically creates an list that it will use to store any bpms you add
+
+    The list has the variables:
+        BPM
+        Offset
+        Beat mode (1/2 and so on...)
+        Current beat (including halves and quads)
+        Beat number (for beeps and bops you hear as sfx)
+    """
+    
     def __init__(self):
         self.bpmslist = []
-    def set_parameters(bpmnum = int, bpm = float, offset = int, beatmode = str, lastallbeat = int, lastmainbeat = int, beatnum = int):
-        pass
-        
-        #      offset bpm beatm lm la bn
+        #offset bpm beatm curbeat beatnum
+    def new(self, bpm: float, offset: int, beatmode: str, curbeat: int, beatnum: int):
+        self.bpmslist.append([bpm,offset,beatmode,curbeat,beatnum])
+    
+    def set(self, bpm_num: int, bpm, offset, beatmode, curbeat, beatnum):
+        """
+        Here you should ONLY type what you want to change
+
+        Example:
+            blabla.set(0, bpm=90, beatmode='1/4', offset=10)
+
+        """
+        if bpm:
+            self.bpmslist[bpm_num][0] = bpm
+        if offset:
+            self.bpmslist[bpm_num][1] = offset
+        if beatmode:
+            self.bpmslist[bpm_num][2] = beatmode
+        if curbeat:
+            self.bpmslist[bpm_num][3] = curbeat
+        if beatnum:
+            self.bpmslist[bpm_num][4] = beatnum
+
+    def get(self, bpm_num: int, bpm: bool, offset: bool, beatmode: bool, curbeat: bool, beatnum: bool):
+        """
+        Here you should ONLY type what you want to get
+
+        Example:
+            blabla.get(0, bpm=True, beatnum=True)
+
+        """
+        if bpm:
+            return self.bpmslist[bpm_num][0]
+        if offset:
+            return self.bpmslist[bpm_num][1]
+        if beatmode:
+            return self.bpmslist[bpm_num][2]
+        if curbeat:
+            return self.bpmslist[bpm_num][3]
+        if beatnum:
+            return self.bpmslist[bpm_num][4]
+
+
+    def load(self, bpm_num = int):
+        global allbeatmarksms
+
+        global halfbeatmarkms
+        global doublehalfbeatmarkms
+        global triplehalfbeatmarkms
+
+        global mainbeatmarkms
+
+        if self.bpmslist[bpm_num][0] != None:
+            global beatsmode
+            global tickspersec
+            global durationbetweenticks
+
+
+
+            tickspersec = self.bpmslist[bpm_num][0] / 60
+            durationbetweenticks = 1000 / tickspersec
+
+            allbeatmarksms = []
+
+            halfbeatmarkms = []
+            doublehalfbeatmarkms = []
+            triplehalfbeatmarkms = []
+
+            mainbeatmarkms = [0+offset]
+            times = 1
+            while int(durationbetweenticks*times) < int(songlengthms):
+                mainbeatmarkms.append(int(durationbetweenticks*times)+int(offset))
+                times += 1
+
+            times = 0
+            while times < len(mainbeatmarkms):
+                allbeatmarksms.append(mainbeatmarkms[times])
+                times += 1
+
+
+
+
+            #i MIGHT have lost the meaning of whats in there but its fiiine... i still know SOME of it soo
+
+            if beatsmode == '1/2':
+                times = 0
+                while times < len(mainbeatmarkms)-1:
+                    try:
+                        if int((mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2)+offset) not in allbeatmarksms:
+                            halfbeatmarkms.append(int(mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2)+offset)
+
+                        times += 1
+                    except ZeroDivisionError:
+                        times += 1
+
+                allbeatmarksms.append(halfbeatmarkms.copy())
+
+
+
+            if beatsmode == '1/4':
+                times = 0
+                while times < len(mainbeatmarkms)-1:
+                    try:
+                        if int((mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2)+offset) not in allbeatmarksms:
+                            halfbeatmarkms.append(int(mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2)+offset)
+
+                        if int((mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/4)+offset) not in allbeatmarksms:
+                            doublehalfbeatmarkms.append(int(mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/4)+offset)
+
+                        if int((mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2*1.5)+offset) not in allbeatmarksms:
+                            doublehalfbeatmarkms.append(int(mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2*1.5)+offset)
+
+
+                        times += 1
+                    except ZeroDivisionError:
+                        times += 1
+
+                allbeatmarksms.append(halfbeatmarkms.copy())
+                allbeatmarksms.append(doublehalfbeatmarkms.copy())
+
+
+            if beatsmode == '1/8':
+                times = 0
+                while times < len(mainbeatmarkms)-1:
+                    try:
+                        if int((mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2)+offset) not in allbeatmarksms:
+                            halfbeatmarkms.append(int(mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2)+offset)
+
+
+                        if int((mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/4)+offset) not in allbeatmarksms:
+                            doublehalfbeatmarkms.append(int(mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/4)+offset)
+
+                        if int((mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2*1.5)+offset) not in allbeatmarksms:
+                            doublehalfbeatmarkms.append(int(mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2*1.5)+offset)
+
+
+                        if int((mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/8)+offset) not in allbeatmarksms:
+                            triplehalfbeatmarkms.append(int(mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/8)+offset)
+
+                        if int((mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/4*1.5)+offset) not in allbeatmarksms:
+                            triplehalfbeatmarkms.append(int(mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/4*1.5)+offset)
+
+                        if int((mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2*1.25)+offset) not in allbeatmarksms:
+                            triplehalfbeatmarkms.append(int(mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2*1.25)+offset)
+
+                        if int((mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2*1.75)+offset) not in allbeatmarksms:
+                            triplehalfbeatmarkms.append(int(mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2*1.75)+offset)
+
+
+                        times += 1
+                    except ZeroDivisionError:
+                        times += 1
+
+                allbeatmarksms.append(halfbeatmarkms.copy())
+                allbeatmarksms.append(doublehalfbeatmarkms.copy())
+                allbeatmarksms.append(triplehalfbeatmarkms.copy())
+
+
+
+
+
+            allbeatmarksms.sort()
+
+            halfbeatmarkms.sort()
+            doublehalfbeatmarkms.sort()
+            triplehalfbeatmarkms.sort()
+        else:
+
+            allbeatmarksms = [0]
+
+            halfbeatmarkms = []
+            doublehalfbeatmarkms = []
+            triplehalfbeatmarkms = []
+
+            mainbeatmarkms = [0]
+
 
 
 
