@@ -16,10 +16,22 @@ Lets just collectively agree that it just works, okay?
 
 
 
+
+
+#more lines != good code
+#throw this shit in the trash
+
+
+
+
+
+#im still learning so i MIGHt be stupid with classes and not realizing it yet
+
 class sbttl:
-    def __init__(self, script_version = str):
+    def __init__(self, script_version: str):
         self.script_version = script_version
-    def load(self, file_path = str):
+
+    def load(self, file_path: str):
 
         times = len(file_path)-1
         while True:
@@ -73,23 +85,22 @@ class sbttl:
 
             markedlistmsandtext = savemarksmsandtext
 
-            offset = saveoffset
-            songbpm = savebpm
-            beatsmode = savebeatsmode
-
             songchannel = pygame.mixer.music
             songlengthms = pygame.mixer.Sound(str(chosensave_folder)+str(savesong)).get_length() * 1000
             songchannel.load(str(chosensave_folder)+str(savesong))
             songchannel.play(0,0)
             songchannel.pause()
 
-            bpmupdate(songbpm)
+            bpms = BPMS()
+            bpms.new(savebpm,saveoffset,savebeatsmode,0,1)
+            bpms.load(0)
 
             pygame.display.set_caption(chosensave_name)
 
 
 
-    def save(self,savefile_path = str, bpm = float, offset = int, beatsmode = str, markslist = list, songdir = str, ):
+    def save(self, savefile_path: str, songdir: str, bpm: float, offset: int, beatsmode: str, markslist: list, ):
+
         if self.script_version == 'b0.1.0':
             times = 0
             markslist_lines = ''
@@ -166,15 +177,23 @@ class BPMS:
     def __init__(self):
         self.bpmslist = []
         #offset bpm beatm curbeat beatnum
+
+
+
     def new(self, bpm: float, offset: int, beatmode: str, curbeat: int, beatnum: int):
         self.bpmslist.append([bpm,offset,beatmode,curbeat,beatnum])
     
+    def delete(self, bpm_num: int):
+        self.bpmslist.pop(bpm_num)
+
+
+
     def set(self, bpm_num: int, bpm, offset, beatmode, curbeat, beatnum):
         """
         Here you should ONLY type what you want to change
 
         Example:
-            blabla.set(0, bpm=90, beatmode='1/4', offset=10)
+            bpms.set(0, bpm=90, beatmode='1/4', offset=10)
 
         """
         if bpm:
@@ -193,22 +212,22 @@ class BPMS:
         Here you should ONLY type what you want to get
 
         Example:
-            blabla.get(0, bpm=True, beatnum=True)
+            bpms.get(0, bpm=True, beatnum=True)
 
         """
         if bpm:
-            return self.bpmslist[bpm_num][0]
+            yield self.bpmslist[bpm_num][0]
         if offset:
-            return self.bpmslist[bpm_num][1]
+            yield self.bpmslist[bpm_num][1]
         if beatmode:
-            return self.bpmslist[bpm_num][2]
+            yield self.bpmslist[bpm_num][2]
         if curbeat:
-            return self.bpmslist[bpm_num][3]
+            yield self.bpmslist[bpm_num][3]
         if beatnum:
-            return self.bpmslist[bpm_num][4]
+            yield self.bpmslist[bpm_num][4]
 
 
-    def load(self, bpm_num = int):
+    def load(self, bpm_num: int):
         global allbeatmarksms
 
         global halfbeatmarkms
@@ -341,265 +360,24 @@ class BPMS:
 
             mainbeatmarkms = [0]
 
+currentbpm = 0
 
+bpms = BPMS()
 
+"""
+bpm
+offset
+beatmode
+curbet 
+beatnum
+"""
 
+bpms.new(None,0,'1/1',0,4)
+bpms.load(currentbpm)
 
-def sbttl_file_load_scene(version = str, newproject = False):
-    global songbpm
-    global offset
-    global markedlistmsandtext
-    global songlengthms
-    global beatsmode
-    global songfiledir
 
-    #version b0.1.0 loader
-    while True:
-        chosensave = easygui.fileopenbox(title='Choose your .sbttl file',default=scriptdirfolder+slash+'*.sbttl')
-        if chosensave == None:
-            return
-        if chosensave[len(chosensave)-6:len(chosensave)] != '.sbttl':
-            chosensave = easygui.filesavebox(title='Choose your .sbttl file',msg='Please choose a .sbttl file',default=scriptdirfolder+slash+'*.sbttl')
-            continue
-        
-        else:
 
-            times = len(chosensave)-1
-            while True:
-                times -= 1
-                if str(chosensave).find('\\',times,len(chosensave)) != -1 or str(chosensave).find('/',times,len(chosensave)) != -1:
-                    break
-            times += 1
-            chosensave_name = chosensave[times:len(chosensave)]
-            chosensave_folder = chosensave[0:times]
-
-            savefile = open(chosensave,'r',encoding='utf-8').readlines()
-            saveversion = savefile[0][9:len(savefile[0])-1]
-
-            startpos_line = 0
-            while savefile[startpos_line] != 'start\n':
-                startpos_line += 1
-
-            savesong = str(savefile[startpos_line + 1][10:len(savefile[startpos_line + 1])-1])
-            songfiledir = str(chosensave_folder)+str(savesong)
-
-            savebpm = float(savefile[startpos_line + 2][5:len(savefile[startpos_line + 2])-1])
-
-            saveoffset = int(savefile[startpos_line + 3][8:len(savefile[startpos_line + 3])-1])
-
-            savebeatsmode = str(savefile[startpos_line + 4][11:len(savefile[startpos_line + 4])-1])
-            
-            markspos = startpos_line + 5
-
-            savemarksmsandtext = []
-
-            while savefile[markspos] != 'end\n':
-                times = 0
-                while savefile[markspos][times] != ' ':
-                    times += 1
-                    print(str(markspos)+' '+str(times))
-
-
-                savemarksmsandtext.append([float(savefile[markspos][0:times]),str(savefile[markspos][times+1:len(savefile[markspos])-1])])
-
-                markspos += 1
-
-            markedlistmsandtext = savemarksmsandtext
-
-            offset = saveoffset
-            songbpm = savebpm
-            beatsmode = savebeatsmode
-
-            bpmupdate(songbpm)
-            
-            songchannel = pygame.mixer.music
-            songlengthms = pygame.mixer.Sound(str(chosensave_folder)+str(savesong)).get_length() * 1000
-            songchannel.load(str(chosensave_folder)+str(savesong))
-            songchannel.play(0,0)
-            songchannel.pause()
-
-            pygame.display.set_caption(chosensave_name)
-
-
-            break
-
-
-
-
-
-
-
-def bpmupdate(bpm):
-
-    global allbeatmarksms
-    global allbeatmarkspixels
-
-    global halfbeatmarkpixels
-    global doublehalfbeatmarkpixels
-    global triplehalfbeatmarkpixels
-
-    global mainbeatmarkpixels
-    global mainbeatmarkms
-    
-    if bpm != None:
-        global beatsmode
-        global tickspersec
-        global durationbetweenticks
-        
-        
-
-        tickspersec = bpm / 60
-        durationbetweenticks = 1000 / tickspersec
-        allbeatmarksms = []
-        allbeatmarkspixels = []
-
-        halfbeatmarkpixels = []
-        doublehalfbeatmarkpixels = []
-        triplehalfbeatmarkpixels = []
-
-
-        mainbeatmarkms = [0+offset]
-        mainbeatmarkpixels = [0+int(offset)]
-        times = 1
-        while int(durationbetweenticks*times) < int(songlengthms):
-            mainbeatmarkms.append(int(durationbetweenticks*times)+int(offset))
-            mainbeatmarkpixels.append(int(durationbetweenticks*times)+int(offset))
-            times += 1
-
-        times = 0
-        while times < len(mainbeatmarkms):
-            allbeatmarksms.append(mainbeatmarkms[times])
-            allbeatmarkspixels.append(mainbeatmarkpixels[times])
-            times += 1
-
-
-
-        #i hate this bullshit i hate it i hate it so fucking much kill me
-
-        if beatsmode == '1/2':
-            times = 0
-            while times < len(mainbeatmarkms)-1:
-                try:
-                    if int((mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2)+offset) not in allbeatmarksms:
-
-                        allbeatmarksms.append(int(mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2)+offset)
-                        allbeatmarkspixels.append(int(mainbeatmarkpixels[times]-offset)+((mainbeatmarkpixels[1]-offset)/2)+offset)
-                        halfbeatmarkpixels.append(int(mainbeatmarkpixels[times]-offset)+((mainbeatmarkpixels[1]-offset)/2)+offset)
-
-                    times += 1
-                except ZeroDivisionError:
-                    times += 1
-
-
-
-
-
-
-
-
-        if beatsmode == '1/4':
-            times = 0
-            while times < len(mainbeatmarkms)-1:
-                try:
-                    if int((mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2)+offset) not in allbeatmarksms:
-
-                        allbeatmarksms.append(int(mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2)+offset)
-                        allbeatmarkspixels.append(int(mainbeatmarkpixels[times]-offset)+((mainbeatmarkpixels[1]-offset)/2)+offset)
-                        halfbeatmarkpixels.append(int(mainbeatmarkpixels[times]-offset)+((mainbeatmarkpixels[1]-offset)/2)+offset)
-
-                    if int((mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/4)+offset) not in allbeatmarksms:
-
-                        allbeatmarksms.append(int(mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/4)+offset)
-                        allbeatmarkspixels.append(int(mainbeatmarkpixels[times]-offset)+((mainbeatmarkpixels[1]-offset)/4)+offset)
-                        doublehalfbeatmarkpixels.append(int(mainbeatmarkpixels[times]-offset)+((mainbeatmarkpixels[1]-offset)/4)+offset)
-
-                    if int((mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2*1.5)+offset) not in allbeatmarksms:
-
-                        allbeatmarksms.append(int(mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2*1.5)+offset)
-                        allbeatmarkspixels.append(int(mainbeatmarkpixels[times]-offset)+((mainbeatmarkpixels[1]-offset)/2*1.5)+offset)
-                        doublehalfbeatmarkpixels.append(int(mainbeatmarkpixels[times]-offset)+((mainbeatmarkpixels[1]-offset)/2*1.5)+offset)
-
-
-                    times += 1
-                except ZeroDivisionError:
-                    times += 1
-
-
-        if beatsmode == '1/8':
-            times = 0
-            while times < len(mainbeatmarkms)-1:
-                try:
-                    if int((mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2)+offset) not in allbeatmarksms:
-
-                        allbeatmarksms.append(int(mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2)+offset)
-                        allbeatmarkspixels.append(int(mainbeatmarkpixels[times]-offset)+((mainbeatmarkpixels[1]-offset)/2)+offset)
-                        halfbeatmarkpixels.append(int(mainbeatmarkpixels[times]-offset)+((mainbeatmarkpixels[1]-offset)/2)+offset)
-
-                    if int((mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/4)+offset) not in allbeatmarksms:
-
-                        allbeatmarksms.append(int(mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/4)+offset)
-                        allbeatmarkspixels.append(int(mainbeatmarkpixels[times]-offset)+((mainbeatmarkpixels[1]-offset)/4)+offset)
-                        doublehalfbeatmarkpixels.append(int(mainbeatmarkpixels[times]-offset)+((mainbeatmarkpixels[1]-offset)/4)+offset)
-
-                    if int((mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2*1.5)+offset) not in allbeatmarksms:
-
-                        allbeatmarksms.append(int(mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2*1.5)+offset)
-                        allbeatmarkspixels.append(int(mainbeatmarkpixels[times]-offset)+((mainbeatmarkpixels[1]-offset)/2*1.5)+offset)
-                        doublehalfbeatmarkpixels.append(int(mainbeatmarkpixels[times]-offset)+((mainbeatmarkpixels[1]-offset)/2*1.5)+offset)
-
-                    if int((mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/8)+offset) not in allbeatmarksms:
-
-                        allbeatmarksms.append(int(mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/8)+offset)
-                        allbeatmarkspixels.append(int(mainbeatmarkpixels[times]-offset)+((mainbeatmarkpixels[1]-offset)/8)+offset)
-                        triplehalfbeatmarkpixels.append(int(mainbeatmarkpixels[times]-offset)+((mainbeatmarkpixels[1]-offset)/8)+offset)
-
-                    if int((mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/4*1.5)+offset) not in allbeatmarksms:
-
-                        allbeatmarksms.append(int(mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/4*1.5)+offset)
-                        allbeatmarkspixels.append(int(mainbeatmarkpixels[times]-offset)+((mainbeatmarkpixels[1]-offset)/4*1.5)+offset)
-                        triplehalfbeatmarkpixels.append(int(mainbeatmarkpixels[times]-offset)+((mainbeatmarkpixels[1]-offset)/4*1.5)+offset)
-
-                    if int((mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2*1.25)+offset) not in allbeatmarksms:
-
-                        allbeatmarksms.append(int(mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2*1.25)+offset)
-                        allbeatmarkspixels.append(int(mainbeatmarkpixels[times]-offset)+((mainbeatmarkpixels[1]-offset)/2*1.25)+offset)
-                        triplehalfbeatmarkpixels.append(int(mainbeatmarkpixels[times]-offset)+((mainbeatmarkpixels[1]-offset)/2*1.25)+offset)
-
-                    if int((mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2*1.75)+offset) not in allbeatmarksms:
-
-                        allbeatmarksms.append(int(mainbeatmarkms[times]-offset)+((mainbeatmarkms[1]-offset)/2*1.75)+offset)
-                        allbeatmarkspixels.append(int(mainbeatmarkpixels[times]-offset)+((mainbeatmarkpixels[1]-offset)/2*1.75)+offset)
-                        triplehalfbeatmarkpixels.append(int(mainbeatmarkpixels[times]-offset)+((mainbeatmarkpixels[1]-offset)/2*1.75)+offset)
-
-
-                    times += 1
-                except ZeroDivisionError:
-                    times += 1
-
-
-
-
-
-        allbeatmarksms.sort()
-        allbeatmarkspixels.sort()
-
-        halfbeatmarkpixels.sort()
-        doublehalfbeatmarkpixels.sort()
-        triplehalfbeatmarkpixels.sort()
-    else:
-
-        allbeatmarksms = [0]
-        allbeatmarkspixels = [0]
-
-        halfbeatmarkpixels = []
-        doublehalfbeatmarkpixels = []
-        triplehalfbeatmarkpixels = []
-
-
-        mainbeatmarkms = [0]
-        mainbeatmarkpixels = [0]
-
-bpms = [[None,None,'1/1',0,0,4]]
+#bpms = [[None,None,'1/1',0,0,4]]
 #      offset bpm beatm lm la bn
 
 
@@ -723,33 +501,11 @@ def markssnap():
 playing = False
 
 
-firsttimetapping = True
-oneclick = -1
-twoclick = -1
-threeclick = -1
-fourclick = -1
-fiveclick = -1
-sixclick = -1
-sevenclick = -1
-eightclick = -1
 
-clicksleft = 8
+bpmsetbytap = []
+
 animationopacity = 0
 
-
-
-currentbpm = 0
-
-offset = bpms[currentbpm][0]
-songbpm = bpms[currentbpm][1]
-
-beatsmode = bpms[currentbpm][2]
-
-lastmainbeatmark = bpms[currentbpm][3]
-lastallbeatmark = bpms[currentbpm][4]
-beatnum = bpms[currentbpm][5]
-
-bpmupdate(songbpm)
 
 
 def bpmgraphframe():
@@ -774,7 +530,7 @@ def bpmgraphframe():
         timesend = 0
         
         try:
-            nextbpmstart = bpms[currentbpm+1][0]
+            nextbpmstart = bpms.get(currentbpm+1, offset=True)
         except IndexError:
             nextbpmstart = songlengthms
 
@@ -783,13 +539,13 @@ def bpmgraphframe():
                 if mainbeatmarkms[timesstart] < offset:
                     timesstart += 1
                     continue
-                if mainbeatmarkpixels[timesstart]/2*zoomuserpreference < int(visualposition-256):
+                if mainbeatmarkms[timesstart]/2*zoomuserpreference < int(visualposition-256):
                     timesstart += 1
                     timesend = timesstart
                     continue
                 elif mainbeatmarkms[timesend] > nextbpmstart:
                     break
-                elif mainbeatmarkpixels[timesend]/2*zoomuserpreference > int(visualposition+256):
+                elif mainbeatmarkms[timesend]/2*zoomuserpreference > int(visualposition+256):
                     break
 
                 timesend += 1
@@ -797,64 +553,52 @@ def bpmgraphframe():
                 break
 
         times = timesstart-1
-
         while times < timesend:
             try:
-                pygame.draw.line(window,(255,255,255),(256-visualposition+float(mainbeatmarkpixels[times]/2) * zoomuserpreference,0), (256-visualposition+float(mainbeatmarkpixels[times]/2) * zoomuserpreference,0+64),1)
-
+                pygame.draw.line(window,(255,255,255),(256-visualposition+float(mainbeatmarkms[times]/2) * zoomuserpreference,0), (256-visualposition+float(mainbeatmarkms[times]/2) * zoomuserpreference,0+64),1)
                 times += 1
             except IndexError:
                 break
-
-
+        
+        times = timesstart-1
+        while times < timesend:
+            try:
+                pygame.draw.line(window,(255,0,0),(256-visualposition+float(halfbeatmarkms[times]/2) * zoomuserpreference,8), (256-visualposition+float(halfbeatmarkms[times]/2) * zoomuserpreference,0+56),1)
+                times += 1
             except IndexError:
                 break
-                #try:
-                #    pygame.draw.line(window,(255,255,255),(256-visualposition+float(mainbeatmarkpixels[times]/2) * zoomuserpreference,0), (256-visualposition+float(mainbeatmarkpixels[times]/2) * zoomuserpreference,0+64),1)
-                #    times += 1
-                #except IndexError:
-                #    times = 0
-                #    break
-
-    #while True:
-    #    try:
-    #        pygame.draw.line(window,(255,0,0),(256-visualposition+float(halfbeatmarkpixels[times]/2) * zoomuserpreference,8), (256-visualposition+float(halfbeatmarkpixels[times]/2) * zoomuserpreference,0+56),1)
-    #        
-    #        times += 1
-    #    except IndexError:
-    #        times = 0
-    #        break
-    #while True:
-    #    try:
-    #        pygame.draw.line(window,(0,0,255),(256-visualposition+float(doublehalfbeatmarkpixels[times]/2) * zoomuserpreference,16), (256-visualposition+float(doublehalfbeatmarkpixels[times]/2) * zoomuserpreference,0+48),1)
-    #        
-    #        times += 1
-    #    except IndexError:
-    #        times = 0
-    #        break
-    #while True:
-    #    try:
-    #        pygame.draw.line(window,(255,255,0),(256-visualposition+float(triplehalfbeatmarkpixels[times]/2) * zoomuserpreference,32), (256-visualposition+float(triplehalfbeatmarkpixels[times]/2) * zoomuserpreference,0+32),1)
-    #        
-    #        times += 1
-    #    except IndexError:
-    #        times = 0
-    #        break
+        
+        times = timesstart-1
+        while times < timesend:
+            try:
+                pygame.draw.line(window,(0,0,255),(256-visualposition+float(doublehalfbeatmarkms[times]/2) * zoomuserpreference,16), (256-visualposition+float(doublehalfbeatmarkms[times]/2) * zoomuserpreference,0+48),1)
+                times += 1
+            except IndexError:
+                times = timesstart-1
+                break
+        
+        times = timesstart-1
+        while times < timesend:
+            try:
+                pygame.draw.line(window,(255,255,0),(256-visualposition+float(triplehalfbeatmarkms[times]/2) * zoomuserpreference,32), (256-visualposition+float(triplehalfbeatmarkms[times]/2) * zoomuserpreference,0+32),1)
+                times += 1
+            except IndexError:
+                times = timesstart-1
+                break
     
 
 
+        times = 0
 
-
-    #while True:
-    #    try:
-    #        pygame.draw.line(window,(255,0,0),(261-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,0),  (257-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,6),1)
-    #        pygame.draw.line(window,(255,0,0),(257-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,57), (261-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,64),1)
-    #        pygame.draw.line(window,(255,0,0),(251-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,0),  (255-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,6),1)
-    #        pygame.draw.line(window,(255,0,0),(255-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,57), (251-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,64),1)
-    #        times += 1
-    #    except IndexError:
-    #        times = 0
-    #        break
+        while True:
+            try:
+                pygame.draw.line(window,(255,0,0),(261-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,0),  (257-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,6),1)
+                pygame.draw.line(window,(255,0,0),(257-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,57), (261-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,64),1)
+                pygame.draw.line(window,(255,0,0),(251-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,0),  (255-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,6),1)
+                pygame.draw.line(window,(255,0,0),(255-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,57), (251-visualposition+float(markedlistmsandtext[times][0]/2) * zoomuserpreference,64),1)
+                times += 1
+            except IndexError:
+                break
     
 
     pygame.draw.polygon(window,(255,255,255),[(0,0),(16,0),(16,32),(0,32),(0,0)])
@@ -1601,8 +1345,8 @@ while True:
             window.fill((0,0,0))
             if songbpm != None:
                 if songbpm > 9999: #spookyyyy :p
-                    songbpm = 1
-                    bpmupdate(songbpm)
+                    bpms.set(currentbpm, bpm=1)
+                    
                     WHYfont = pygame.font.SysFont('couriernew', 256)
                     spooksound1dir = scriptdirfolder+slash+'Data'+slash+'sounds'+slash+'oooh spoooky soundddd1.ogg'
                     spooksound2dir = scriptdirfolder+slash+'Data'+slash+'sounds'+slash+'oooh spoooky soundddd2.ogg'
@@ -1705,40 +1449,22 @@ while True:
 
 
 
-                if songposition < bpms[currentbpm][0]:
+                if songposition < bpms.get(currentbpm, offset=True):
                     try:
-                        currentbpm -= 1
-                        offset = bpms[currentbpm][0]
-                        songbpm = bpms[currentbpm][1]
-                        beatsmode = bpms[currentbpm][2]
-                        lastmainbeatmark = bpms[currentbpm][3]
-                        lastallbeatmark = bpms[currentbpm][4]
-                        beatnum = bpms[currentbpm][5]
                         
-                        bpmupdate(songbpm)
+                        currentbpm -= 1
+                        bpms.load(currentbpm)
 
                         songstartpoint = allbeatmarksms[lastallbeatmark-1]
                         
                     except IndexError:
                         currentbpm += 1
-                        offset = bpms[currentbpm][0]
-                        songbpm = bpms[currentbpm][1]
-                        beatsmode = bpms[currentbpm][2]
-                        lastmainbeatmark = bpms[currentbpm][3]
-                        lastallbeatmark = bpms[currentbpm][4]
-                        beatnum = bpms[currentbpm][5]
-                        bpmupdate(songbpm)
+                        bpms.load(currentbpm)
 
                 try:
-                    if songposition >= bpms[currentbpm+1][0]:
+                    if songposition >= bpms.get(currentbpm+1, offset=True):
                         currentbpm += 1
-                        offset = bpms[currentbpm][0]
-                        songbpm = bpms[currentbpm][1]
-                        beatsmode = bpms[currentbpm][2]
-                        lastmainbeatmark = bpms[currentbpm][3]
-                        lastallbeatmark = bpms[currentbpm][4]
-                        beatnum = bpms[currentbpm][5]
-                        bpmupdate(songbpm)
+                        bpms.load(currentbpm)
                 except IndexError:
                     pass
 
@@ -1835,12 +1561,12 @@ while True:
                     devmode = False
 
 
-            if clicksleft == 8:
-                configurebpmclicks = ultrabigfont.render(str('Reset'),False,(gray))
+            if len(bpmsetbytap) == 0:
+                configurebpmclicks = ultrabigfont.render(str('Done!'),False,(gray))
                 configurebpmclicks.set_alpha(animationopacity)
                 window.blit(configurebpmclicks,(164,224))
             else:
-                configurebpmclicks = ultrabigfont.render(str(clicksleft),False,(gray))
+                configurebpmclicks = ultrabigfont.render(str(8-len(bpmsetbytap)),False,(gray))
                 configurebpmclicks.set_alpha(animationopacity)
                 window.blit(configurebpmclicks,(224,224))
 
@@ -2048,34 +1774,14 @@ while True:
                                     pass
 
                         if event.pos[0] > 240 and event.pos[0] < 272 and event.pos[1] > 65 and event.pos[1] < 95: #+bpm
-                            if bpms[0][1] == None:
-                                bpms[0][0] = songposition
-                                bpms[0][1] = 120.0
-                                bpms[0][2] = '1/1'
-                                bpms[0][3] = 0
-                                bpms[0][4] = 0
-                                bpms[0][5] = 4
-
-                                songbpm = bpms[0][1]
-                                offset = bpms[0][0]
-                                beatsmode = bpms[0][2]
-                                lastmainbeatmark = bpms[0][3]
-                                lastallbeatmark = bpms[0][4]
-                                beatnum = bpms[0][5]
-
-                                bpmupdate(songbpm)
+                            if bpms.get(currentbpm, bpm=True) == None:
+                                bpms.set(currentbpm, bpm=120.0, offset=songposition, beatmode='1/1', curbeat=0, beatnum=4)
+                                bpms.load(currentbpm)
 
                             else:
-                                bpms.append([songposition,120.0,'1/1',0,0,4])
-
-                                songbpm = bpms[currentbpm+1][1]
-                                offset = bpms[currentbpm+1][0]
-                                beatsmode = bpms[currentbpm+1][2]
-                                lastmainbeatmark = bpms[currentbpm+1][3]
-                                lastallbeatmark = bpms[currentbpm+1][4]
-                                beatnum = bpms[currentbpm+1][5]
-
-                                bpmupdate(songbpm)
+                                bpms.new(bpms.get(bpm=True,offset=True,beatmode=True,curbeat=True,beatnum=True))
+                                currentbpm += 1
+                                bpms.load(currentbpm)
 
                         if event.pos[0] > 0 and event.pos[0] < 26 and event.pos[1] > 128 and event.pos[1] < 160: #<
                             try:
@@ -2096,10 +1802,9 @@ while True:
                                         if songstartpoint < mainbeatmarkms[lastmainbeatmark]:
                                             lastmainbeatmark -= 1
                                             bpms[currentbpm][3] = lastmainbeatmark
-                                            temp = beatnum
-                                            if temp > 0:
+                                            if beatnum > 0:
                                                 beatnum -= 1
-                                            if temp == 1:
+                                            elif beatnum == 1:
                                                 beatnum = 4
                                             bpms[currentbpm][5] = beatnum
                                         else:
@@ -2141,10 +1846,9 @@ while True:
                                         if songstartpoint > mainbeatmarkms[lastmainbeatmark]:
                                             lastmainbeatmark += 1
                                             bpms[currentbpm][3] = lastmainbeatmark
-                                            temp = beatnum
-                                            if temp < 4:
+                                            if beatnum < 4:
                                                 beatnum += 1
-                                            if temp == 4:
+                                            elif beatnum == 4:
                                                 beatnum = 1
                                             bpms[currentbpm][5] = beatnum
                                         else:
@@ -2167,10 +1871,9 @@ while True:
                                         if songstartpoint < mainbeatmarkms[lastmainbeatmark]:
                                             lastmainbeatmark -= 1
                                             bpms[currentbpm][3] = lastmainbeatmark
-                                            temp = beatnum
-                                            if temp > 0:
+                                            if beatnum > 0:
                                                 beatnum -= 1
-                                            if temp == 1:
+                                            elif beatnum == 1:
                                                 beatnum = 4
                                             bpms[currentbpm][5] = beatnum
                                         else:
@@ -2209,34 +1912,30 @@ while True:
                                 
                         if event.pos[0] > 412 and event.pos[0] < 438 and event.pos[1] > 96 and event.pos[1] < 128: # < ?/? 
                             if songbpm != None:
-                                temp = beatsmode
-                                if temp == '1/2':
+                                if beatsmode == '1/2':
                                     lastallbeatmark = int(lastallbeatmark / 2)
                                     beatsmode = '1/1'
-                                if temp == '1/4':
+                                elif beatsmode == '1/4':
                                     lastallbeatmark = int(lastallbeatmark / 2)
                                     beatsmode = '1/2'
-                                if temp == '1/8':
+                                elif beatsmode == '1/8':
                                     lastallbeatmark = int(lastallbeatmark / 2)
                                     beatsmode = '1/4'
-                                bpms[currentbpm][2] = beatsmode
-                                bpms[currentbpm][4] = lastallbeatmark
-                                bpmupdate(songbpm)
+                                bpms.set(currentbpm,beatmode=beatsmode,curbeat=lastallbeatmark)
+                                bpms.load(currentbpm)
                         if event.pos[0] > 488 and event.pos[1] > 96 and event.pos[1] < 128: # ?/? >
                             if songbpm != None:
-                                temp = beatsmode
-                                if temp == '1/1':
+                                if beatsmode == '1/1':
                                     lastallbeatmark = int(lastallbeatmark * 2)
                                     beatsmode = '1/2'
-                                if temp == '1/2':
+                                elif beatsmode == '1/2':
                                     lastallbeatmark = int(lastallbeatmark * 2)
                                     beatsmode = '1/4'
-                                if temp == '1/4':
+                                elif beatsmode == '1/4':
                                     lastallbeatmark = int(lastallbeatmark * 2)
                                     beatsmode = '1/8'
-                                bpms[currentbpm][2] = beatsmode
-                                bpms[currentbpm][4] = lastallbeatmark
-                                bpmupdate(songbpm)
+                                bpms.set(currentbpm,beatmode=beatsmode,curbeat=lastallbeatmark)
+                                bpms.load(currentbpm)
 
                         if event.pos[0] > 480 and event.pos[1] > 480: #settings button
                             settingsmenu = True 
@@ -2253,10 +1952,31 @@ while True:
                                 songchannel.fadeout(400) #stops music automaticly
 
                         if event.pos[0] > 480 and event.pos[1] > 448 and event.pos[1] < 480: # load button
-                            sbttl_file_load_scene(EDITORVERSION)
+
+                            while True:
+                                chosensave = easygui.fileopenbox(title='Choose your .sbttl file',default=scriptdirfolder+slash+'*.sbttl')
+                                if chosensave == None:
+                                    break
+                                if chosensave[len(chosensave)-6:len(chosensave)] != '.sbttl':
+                                    chosensave = easygui.filesavebox(title='Choose your .sbttl file',msg='Please choose a .sbttl file',default=scriptdirfolder+slash+'*.sbttl')
+                                    
+                            sbttl(EDITORVERSION).load(chosenfile)
+
+
                         if event.pos[0] > 480 and event.pos[1] > 416 and event.pos[1] < 448: # save button
                             try:
-                                sbttl_file_save_scene(EDITORVERSION,songfiledir,songbpm,offset,beatsmode,markedlistmsandtext)
+                                
+                                newfilename = pygame.display.get_caption()[0]
+                                savefile_dir = easygui.filesavebox(title='Saving your file...',default=scriptdirfolder+slash+newfilename)
+
+                                while True:
+                                    if savefile_dir == None:
+                                        break
+                                    if savefile_dir[len(savefile_dir)-6:len(savefile_dir)] != '.sbttl':
+                                        savefile_dir = easygui.filesavebox(title='Saving your file...',msg='Please make a .sbttl file',default=scriptdirfolder+slash+newfilename)
+                                
+                                sbttl(EDITORVERSION).save(savefile_dir, songfiledir, bpms.get(currentbpm, bpm=True, offset=True, beatmode=True), markedlistmsandtext)
+        
                             except Exception:
                                 easygui.exceptionbox('ERROR OCCURED WHILE SAVING THE PROJECT','ERROR')
                         if event.pos[0] > 480 and event.pos[1] > 384 and event.pos[1] < 416: #volume button
@@ -2291,15 +2011,15 @@ while True:
                                 songchannel.set_volume(newvolume)
 
 
-                        temp = firstbarmode
+                        
 
-                        if temp == 'BPM':
+                        if firstbarmode == 'BPM':
                         
                             if event.pos[0] > 2 and event.pos[0] < 132 and event.pos[1] > 67 and event.pos[1] < 94: #BPM
                                 firstbarmode = 'OFFSET'
                             if event.pos[0] > 392 and event.pos[0] < 416 and event.pos[1] > 67 and event.pos[1] < 94: #<
-                                if songbpm > 1:
-                                    if bpms[currentbpm][1] != None:
+                                if bpms[currentbpm][1] != None:
+                                    if songbpm > 1:
                                         songbpm -= 1
                                         bpms[currentbpm][1] = songbpm
                                         bpmupdate(songbpm)
@@ -2312,135 +2032,29 @@ while True:
                                     markssnap()
                             if event.pos[0] > 446 and event.pos[0] < 506 and event.pos[1] > 67 and event.pos[1] < 94: #TAP button
 
-                                #i know that this is really bad but it works and i dont want to rewrite this code
-                                #im lazy
-                                temp = firsttimetapping
-                                if temp == True:
-                                    if playing == True:
-                                        if oneclick == -1:
-                                            clicksleft -= 1
-                                            animationopacity = 60
-                                            oneclick = songchannel.get_pos()
-                                        else:
-                                            if twoclick == -1:
-                                                clicksleft -= 1
-                                                animationopacity = 60
-                                                twoclick = songchannel.get_pos()
-                                            else:
-                                                if threeclick == -1:
-                                                    clicksleft -= 1
-                                                    animationopacity = 60
-                                                    threeclick = songchannel.get_pos()
-                                                else:
-                                                    if fourclick == -1:
-                                                        clicksleft -= 1
-                                                        animationopacity = 60
-                                                        fourclick = songchannel.get_pos()
-                                                    else:
-                                                        if fiveclick == -1:
-                                                            clicksleft -= 1
-                                                            animationopacity = 60
-                                                            fiveclick = songchannel.get_pos()
-                                                        else:
-                                                            if sixclick == -1:
-                                                                clicksleft -= 1
-                                                                animationopacity = 60
-                                                                sixclick = songchannel.get_pos()
-                                                            else:
-                                                                if sevenclick == -1:
-                                                                    clicksleft -= 1
-                                                                    animationopacity = 60
-                                                                    sevenclick = songchannel.get_pos()
-                                                                else:
-                                                                    if eightclick == -1:
-                                                                        clicksleft -= 1
-                                                                        animationopacity = 60
-                                                                        eightclick = songchannel.get_pos()
+                                #not lazy for once
+                                if songbpm != 0:
+                                    songchannel.unpause()
 
-                                                                        clicksdelayonetoeigth = [int(twoclick-oneclick),int(threeclick-twoclick),int(fourclick-threeclick),int(fiveclick-fourclick),int(sixclick-fiveclick),int(sevenclick-sixclick),int(eightclick-sevenclick)]
-                                                                        clicksdelaycombined = clicksdelayonetoeigth[0]+clicksdelayonetoeigth[1]+clicksdelayonetoeigth[2]+clicksdelayonetoeigth[3]+clicksdelayonetoeigth[4]+clicksdelayonetoeigth[5]+clicksdelayonetoeigth[6]
-                                                                        averagedelay = clicksdelaycombined / len(clicksdelayonetoeigth) #in ms
-
-                                                                        tickspersec = 1000 / averagedelay
-                                                                        songbpm = tickspersec * 60
-                                                                        songbpm = round(songbpm,0)
-                                                                        bpms[currentbpm][1] = songbpm
-                                                                        bpmupdate(songbpm)
-                                                                        markssnap()
-
-                                                                        firsttimetapping = False
-                                    if playing == False:
-                                        if oneclick == -1:
-                                            clicksleft -= 1
-                                            animationopacity = 60
-                                            oneclick = songchannel.get_pos()
-                                        else:
-                                            if twoclick == -1:
-                                                clicksleft -= 1
-                                                animationopacity = 60
-                                                twoclick = songchannel.get_pos()
-                                            else:
-                                                if threeclick == -1:
-                                                    clicksleft -= 1
-                                                    animationopacity = 60
-                                                    threeclick = songchannel.get_pos()
-                                                else:
-                                                    if fourclick == -1:
-                                                        clicksleft -= 1
-                                                        animationopacity = 60
-                                                        fourclick = songchannel.get_pos()
-                                                    else:
-                                                        if fiveclick == -1:
-                                                            clicksleft -= 1
-                                                            animationopacity = 60
-                                                            fiveclick = songchannel.get_pos()
-                                                        else:
-                                                            if sixclick == -1:
-                                                                clicksleft -= 1
-                                                                animationopacity = 60
-                                                                sixclick = songchannel.get_pos()
-                                                            else:
-                                                                if sevenclick == -1:
-                                                                    clicksleft -= 1
-                                                                    animationopacity = 60
-                                                                    sevenclick = songchannel.get_pos()
-                                                                else:
-                                                                    if eightclick == -1:
-                                                                        clicksleft -= 1
-                                                                        animationopacity = 60
-                                                                        eightclick = songchannel.get_pos()
-                                                                        firsttimetapping = False
-
-                                                                        clicksdelayonetoeigth = [int(twoclick-oneclick),int(threeclick-twoclick),int(fourclick-threeclick),int(fiveclick-fourclick),int(sixclick-fiveclick),int(sevenclick-sixclick),int(eightclick-sevenclick)]
-                                                                        clicksdelaycombined = clicksdelayonetoeigth[0]+clicksdelayonetoeigth[1]+clicksdelayonetoeigth[2]+clicksdelayonetoeigth[3]+clicksdelayonetoeigth[4]+clicksdelayonetoeigth[5]+clicksdelayonetoeigth[6]
-                                                                        averagedelay = clicksdelaycombined / len(clicksdelayonetoeigth) #in ms
-
-                                                                        tickspersec = 1000 / averagedelay
-                                                                        songbpm = tickspersec * 60
-                                                                        songbpm = round(songbpm,0)
-                                                                        bpms[currentbpm][1] = songbpm
-                                                                        bpmupdate(songbpm)
-                                                                        markssnap()
-
-
-                                        playing = True
-                                        songchannel.unpause()
-
-                                if temp == False:
-                                    firsttimetapping = True
-                                    oneclick = -1
-                                    twoclick = -1
-                                    threeclick = -1
-                                    fourclick = -1
-                                    fiveclick = -1
-                                    sixclick = -1
-                                    sevenclick = -1
-                                    eightclick = -1
-
-                                    clicksleft = 8
                                     animationopacity = 60
+                                    bpmsetbytap.append(songchannel.get_pos())
+                                    if len(bpmsetbytap) == 8:
+                                        clicksdelayonetoeigth = [(bpmsetbytap[1]-bpmsetbytap[0]),(bpmsetbytap[2]-bpmsetbytap[1]),(bpmsetbytap[3]-bpmsetbytap[2]),(bpmsetbytap[4]-bpmsetbytap[3]),(bpmsetbytap[5]-bpmsetbytap[4]),(bpmsetbytap[6]-bpmsetbytap[5]),(bpmsetbytap[7]-bpmsetbytap[6])]
+                                        clicksdelaycombined = clicksdelayonetoeigth[0]+clicksdelayonetoeigth[1]+clicksdelayonetoeigth[2]+clicksdelayonetoeigth[3]+clicksdelayonetoeigth[4]+clicksdelayonetoeigth[5]+clicksdelayonetoeigth[6]
+                                        averagedelay = clicksdelaycombined / len(clicksdelayonetoeigth) #in ms
 
-                        if temp == 'OFFSET':
+                                        tickspersec = 1000 / averagedelay
+                                        songbpm = tickspersec * 60
+                                        songbpm = round(songbpm,0)
+                                        bpms[currentbpm][1] = songbpm
+                                        bpmupdate(songbpm)
+
+                                        bpmsetbytap.clear()
+
+
+                                    
+
+                        elif firstbarmode == 'OFFSET':
                             if event.pos[0] > 2 and event.pos[0] < 156 and event.pos[1] > 67 and event.pos[1] < 94: #OFFSET
                                 firstbarmode = 'BPM'
                             if event.pos[0] > 489 and event.pos[0] < 508 and event.pos[1] > 67 and event.pos[1] < 94: #>
@@ -2495,9 +2109,9 @@ while True:
                                 songchannel.set_volume(newvolume)
                                 continue
 
-                        temp = firstbarmode
+                      
 
-                        if temp == 'BPM':
+                        if firstbarmode == 'BPM':
                             if eventpos[0] > 388 and eventpos[0] < 444 and eventpos[1] > 64 and eventpos[1] < 96: #<>
                                 if bpms[currentbpm][1] != None:
                                     songbpm += 1
@@ -2648,7 +2262,7 @@ while True:
                                         bpms[currentbpm][4] = lastallbeatmark
                                         bpms[currentbpm][5] = beatnum
 
-                        if temp == 'OFFSET':
+                        elif firstbarmode == 'OFFSET':
                             if eventpos[0] > 462 and eventpos[1] > 64 and eventpos[1] < 96: #<>
                                 if bpms[currentbpm][1] != None:
                                     offset += 5
@@ -2795,9 +2409,9 @@ while True:
                                 songchannel.set_volume(newvolume)
                                 continue
 
-                        temp = firstbarmode
+                        
 
-                        if temp == 'BPM':
+                        if firstbarmode == 'BPM':
                             if eventpos[0] > 388 and eventpos[0] < 444 and eventpos[1] > 64 and eventpos[1] < 96: #<>
                                 if songbpm > 1:
                                     if bpms[currentbpm][1] != None:
@@ -2878,7 +2492,7 @@ while True:
                                     except IndexError:
                                         pass
                                     
-                        if temp == 'OFFSET':
+                        elif firstbarmode == 'OFFSET':
                             if eventpos[0] > 462 and eventpos[1] > 64 and eventpos[1] < 96: #<>
                                 if offset > 1:
                                     if bpms[currentbpm][1] != None:
@@ -2986,8 +2600,8 @@ while True:
                     if not textbox_typing:
                         if event.key == 32: #space button
 
-                            temp = playing
-                            if temp == False:
+                            
+                            if playing == False:
                                 if offset == None:
                                     if songposition > songlengthms-10:
                                         lastmainbeatmark = 0
@@ -3023,7 +2637,7 @@ while True:
                                 playing = True
                                 songstartpoint = songposition
                                 songchannel.play(0,songstartpoint / 1000)
-                            if temp == True:
+                            elif playing == True:
                                 playing = False
                                 songchannel.pause()
 
