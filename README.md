@@ -8,7 +8,7 @@
 
 Its bad. Its really really bad.
 
-Right now the code of this shit is begging for mercy. Its so ass
+Right now the code of this crap is begging for mercy. Its so ahh
 
 Please don't look at the code, I will fix everything but it will take some time.
 
