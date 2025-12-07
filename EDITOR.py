@@ -1521,7 +1521,7 @@ while True:
                 try:
                     if songposition > mainbeatmarkms[lastmainbeatmark]:
                         lastmainbeatmark += 1
-                        bpms[currentbpm][3] = lastmainbeatmark
+                        
                         temp = beatnum
                         if temp < 4:
                             beepsound.play()
@@ -1529,7 +1529,7 @@ while True:
                         if temp == 4:
                             bopsound.play()
                             beatnum = 1
-                        bpms[currentbpm][5] = beatnum
+                        bpms.set(currentbpm, beatnum=beatnum)
                         if lastmainbeatmark % 2 == 1:
                             pygame.display.set_icon(eyesopenicon)
                         else:
@@ -1541,7 +1541,7 @@ while True:
                 try:
                     if songposition > allbeatmarksms[lastallbeatmark]:
                         lastallbeatmark += 1
-                        bpms[currentbpm][4] = lastallbeatmark
+                        bpms.set(currentbpm, curbeat=lastallbeatmark)
                 except IndexError:
                     pass
                 
@@ -1801,12 +1801,11 @@ while True:
                                     try:
                                         if songstartpoint < mainbeatmarkms[lastmainbeatmark]:
                                             lastmainbeatmark -= 1
-                                            bpms[currentbpm][3] = lastmainbeatmark
                                             if beatnum > 0:
                                                 beatnum -= 1
                                             elif beatnum == 1:
                                                 beatnum = 4
-                                            bpms[currentbpm][5] = beatnum
+                                            bpms.set(currentbpm, beatnum=beatnum)
                                         else:
                                             break
                                     except IndexError:
@@ -1816,7 +1815,7 @@ while True:
                                     try:
                                         if songstartpoint < allbeatmarksms[lastallbeatmark]:
                                             lastallbeatmark -= 1
-                                            bpms[currentbpm][4] = lastallbeatmark
+                                            bpms.set(currentbpm, curbeat=lastallbeatmark)
                                         else:
                                             break
                                     except IndexError:
@@ -1845,12 +1844,11 @@ while True:
                                     try:
                                         if songstartpoint > mainbeatmarkms[lastmainbeatmark]:
                                             lastmainbeatmark += 1
-                                            bpms[currentbpm][3] = lastmainbeatmark
                                             if beatnum < 4:
                                                 beatnum += 1
                                             elif beatnum == 4:
                                                 beatnum = 1
-                                            bpms[currentbpm][5] = beatnum
+                                            bpms.set(currentbpm, beatnum=beatnum)
                                         else:
                                             break
                                     except IndexError:
@@ -1860,7 +1858,7 @@ while True:
                                     try:
                                         if songstartpoint > allbeatmarksms[lastallbeatmark]:
                                             lastallbeatmark += 1
-                                            bpms[currentbpm][4] = lastallbeatmark
+                                            bpms.set(currentbpm, curbeat=lastallbeatmark)
                                         else:
                                             break
                                     except IndexError:
@@ -1870,12 +1868,11 @@ while True:
                                     try:
                                         if songstartpoint < mainbeatmarkms[lastmainbeatmark]:
                                             lastmainbeatmark -= 1
-                                            bpms[currentbpm][3] = lastmainbeatmark
                                             if beatnum > 0:
                                                 beatnum -= 1
                                             elif beatnum == 1:
                                                 beatnum = 4
-                                            bpms[currentbpm][5] = beatnum
+                                            bpms.set(currentbpm, beatnum=beatnum)
                                         else:
                                             break
                                     except IndexError:
@@ -1885,7 +1882,7 @@ while True:
                                     try:
                                         if songstartpoint < allbeatmarksms[lastallbeatmark]:
                                             lastallbeatmark -= 1
-                                            bpms[currentbpm][4] = lastallbeatmark
+                                            bpms.set(currentbpm, curbeat=lastallbeatmark)
                                         else:
                                             break
                                     except IndexError:
@@ -2018,18 +2015,18 @@ while True:
                             if event.pos[0] > 2 and event.pos[0] < 132 and event.pos[1] > 67 and event.pos[1] < 94: #BPM
                                 firstbarmode = 'OFFSET'
                             if event.pos[0] > 392 and event.pos[0] < 416 and event.pos[1] > 67 and event.pos[1] < 94: #<
-                                if bpms[currentbpm][1] != None:
+                                if bpms.get(currentbpm, bpm=True):
                                     if songbpm > 1:
                                         songbpm -= 1
-                                        bpms[currentbpm][1] = songbpm
-                                        bpmupdate(songbpm)
-                                        markssnap()
+                                        bpms.set(currentbpm, bpm=songbpm)
+                                        bpms.load(currentbpm)
+                                        #markssnap()
                             if event.pos[0] > 416 and event.pos[0] < 440 and event.pos[1] > 67 and event.pos[1] < 94: #>
                                 if bpms[currentbpm][1] != None:
                                     songbpm += 1
-                                    bpms[currentbpm][1] = songbpm
-                                    bpmupdate(songbpm)
-                                    markssnap()
+                                    bpms.set(currentbpm, bpm=songbpm)
+                                    bpms.load(currentbpm)
+                                    #markssnap()
                             if event.pos[0] > 446 and event.pos[0] < 506 and event.pos[1] > 67 and event.pos[1] < 94: #TAP button
 
                                 #not lazy for once
@@ -2046,8 +2043,8 @@ while True:
                                         tickspersec = 1000 / averagedelay
                                         songbpm = tickspersec * 60
                                         songbpm = round(songbpm,0)
-                                        bpms[currentbpm][1] = songbpm
-                                        bpmupdate(songbpm)
+                                        bpms.set(currentbpm, bpm=songbpm)
+                                        bpms.load(currentbpm)
 
                                         bpmsetbytap.clear()
 
@@ -2060,15 +2057,15 @@ while True:
                             if event.pos[0] > 489 and event.pos[0] < 508 and event.pos[1] > 67 and event.pos[1] < 94: #>
                                 if bpms[currentbpm][1] != None:
                                     offset += 1
-                                    bpms[currentbpm][0] = offset
-                                    bpmupdate(songbpm)
-                                    markssnap()
+                                    bpms.set(currentbpm, offset=offset)
+                                    bpms.load(currentbpm)
+                                    #markssnap()
                             if event.pos[0] > 466 and event.pos[0] < 489 and event.pos[1] > 67 and event.pos[1] < 94: #<
                                 if bpms[currentbpm][1] != None:
                                     offset -= 1
-                                    bpms[currentbpm][0] = offset
-                                    bpmupdate(songbpm)
-                                    markssnap()
+                                    bpms.set(currentbpm, offset=offset)
+                                    bpms.load(currentbpm)
+                                    #markssnap()
 
                     if event.button == 2: #scroll wheel click
                         pass
@@ -2115,8 +2112,8 @@ while True:
                             if eventpos[0] > 388 and eventpos[0] < 444 and eventpos[1] > 64 and eventpos[1] < 96: #<>
                                 if bpms[currentbpm][1] != None:
                                     songbpm += 1
-                                    bpms[currentbpm][1] = songbpm
-                                    bpmupdate(songbpm)
+                                    bpms.set(currentbpm, bpm=songbpm)
+                                    bpms.load(currentbpm)
                                     lastmainbeatmark = 0
                                     lastallbeatmark = 0
 
@@ -2132,22 +2129,20 @@ while True:
                                     except IndexError:
                                         pass
 
-                                    bpms[currentbpm][3] = lastmainbeatmark
-                                    bpms[currentbpm][4] = lastallbeatmark
+                                    bpms.set(currentbpm, curbeat=lastallbeatmark)
 
-                                    markssnap()
+                                    #markssnap()
                             else:
                                 if playing:
                                     try:
 
                                         lastmainbeatmark -= 2
-                                        bpms[currentbpm][3] = lastmainbeatmark
                                         beatnum -= 2
                                         if beatnum == 0:
                                             beatnum = 4
                                         if beatnum == -1:
                                             beatnum = 3
-                                        bpms[currentbpm][5] = beatnum
+                                        bpms.set(currentbpm, beatnum=beatnum)
                                         songstartpoint = mainbeatmarkms[lastmainbeatmark]
 
                                         songchannel.play(0,songstartpoint/1000)
@@ -2161,13 +2156,12 @@ while True:
                                             songstartpoint = 0
                                             songchannel.play(0,0)
                                             visualposition = 0 
-                                            bpms[currentbpm][3] = lastmainbeatmark
-                                            bpms[currentbpm][4] = lastallbeatmark
-                                            bpms[currentbpm][5] = beatnum
+                                            bpms.set(currentbpm, curbeat=lastallbeatmark)
+                                            bpms.set(currentbpm, beatnum=beatnum)
 
                                         while songstartpoint < allbeatmarksms[lastallbeatmark]:
                                             lastallbeatmark -= 2
-                                            bpms[currentbpm][4] = lastallbeatmark
+                                            bpms.set(currentbpm, curbeat=lastallbeatmark)
 
 
 
@@ -2186,15 +2180,14 @@ while True:
                                         songstartpoint = 0
                                         songchannel.play(0,0)
                                         visualposition = 0 
-                                        bpms[currentbpm][3] = lastmainbeatmark
-                                        bpms[currentbpm][4] = lastallbeatmark
-                                        bpms[currentbpm][5] = beatnum
+                                        bpms.set(currentbpm, curbeat=lastallbeatmark)
+                                        bpms.set(currentbpm, beatnum=beatnum)
 
                                 else: #not playing
                                     try:
 
                                         lastallbeatmark -= 1
-                                        bpms[currentbpm][4] = lastallbeatmark
+                                        bpms.set(currentbpm, curbeat=lastallbeatmark)
                                         songstartpoint = allbeatmarksms[lastallbeatmark]
                                         songchannel.play(0,songstartpoint/1000)
                                         songchannel.pause()
@@ -2202,32 +2195,26 @@ while True:
 
                                         while songstartpoint < mainbeatmarkms[lastmainbeatmark-1]:
                                             lastmainbeatmark -= 1
-                                            bpms[currentbpm][3] = lastmainbeatmark
                                             beatnum -= 1
                                             if beatnum == 0:
                                                 beatnum = 4
-                                            bpms[currentbpm][5] = beatnum
+                                            bpms.set(currentbpm, beatnum=beatnum)
 
                                         if lastallbeatmark < 0:
                                             if currentbpm > 0:
                                                 currentbpm -= 1
 
-                                                offset = bpms[currentbpm][0]
-                                                songbpm = bpms[currentbpm][1]
-                                                beatsmode = bpms[currentbpm][2]
-                                                lastmainbeatmark = bpms[currentbpm][3]
-                                                lastallbeatmark = bpms[currentbpm][4]
-                                                beatnum = bpms[currentbpm][5]
+                                                bpms.load(currentbpm)
+                                                
+                                                bpms.set(currentbpm+1, beatnum=1)
+                                                #bpm[currentbpm+1][4] = 1
+                                                #what is THIS one?^^^
 
-                                                bpmupdate(songbpm)
-
-                                                bpms[currentbpm+1][4] = 1
-
-                                                songstartpoint = offset
+                                                songstartpoint = bpms.get(currentbpm, offset=True)
                                                 songposition = allbeatmarksms[lastallbeatmark]
                                                 songchannel.play(songposition,songstartpoint/1000)
                                                 songchannel.pause()
-                                                visualposition = allbeatmarkspixels[lastallbeatmark]
+                                                visualposition = allbeatmarksms[lastallbeatmark]/2
                                             else:
                                                 lastallbeatmark = 0
                                                 lastmainbeatmark = 0
@@ -2236,9 +2223,9 @@ while True:
                                                 songchannel.play(0,0)
                                                 songchannel.pause()
                                                 visualposition = 0
-                                                bpms[currentbpm][3] = lastmainbeatmark
-                                                bpms[currentbpm][4] = lastallbeatmark
-                                                bpms[currentbpm][5] = beatnum
+                                                bpms.set(currentbpm, curbeat=lastallbeatmark)
+                                                bpms.set(currentbpm, beatnum=beatnum)
+
 
 
                                     except pygame.error:
@@ -2258,29 +2245,27 @@ while True:
                                         songchannel.play(0,0)
                                         songchannel.pause()
                                         visualposition = 0
-                                        bpms[currentbpm][3] = lastmainbeatmark
-                                        bpms[currentbpm][4] = lastallbeatmark
-                                        bpms[currentbpm][5] = beatnum
+                                        bpms.set(currentbpm, curbeat=lastallbeatmark)
+                                        bpms.set(currentbpm, beatnum=beatnum)
 
                         elif firstbarmode == 'OFFSET':
                             if eventpos[0] > 462 and eventpos[1] > 64 and eventpos[1] < 96: #<>
-                                if bpms[currentbpm][1] != None:
+                                if bpms.get(currentbpm, bpm=True) != None:
                                     offset += 5
-                                    bpms[currentbpm][0] = offset
-                                    bpmupdate(songbpm)
-                                    markssnap()
+                                    bpms.set(currentbpm, offset=offset)
+                                    bpms.load(currentbpm)
+                                    #markssnap()
                             else:
                                 if playing:
                                     try:
 
                                         lastmainbeatmark -= 2
-                                        bpms[currentbpm][3] = lastmainbeatmark
                                         beatnum -= 2
                                         if beatnum == 0:
                                             beatnum = 4
                                         if beatnum == -1:
                                             beatnum = 3
-                                        bpms[currentbpm][5] = beatnum
+                                        bpms.set(currentbpm, curbeat=lastallbeatmark)
                                         songstartpoint = mainbeatmarkms[lastmainbeatmark]
 
                                         songchannel.play(0,songstartpoint/1000)
@@ -2294,14 +2279,13 @@ while True:
                                             songstartpoint = 0
                                             songchannel.play(0,0)
                                             visualposition = 0 
-                                            bpms[currentbpm][3] = lastmainbeatmark
-                                            bpms[currentbpm][4] = lastallbeatmark
-                                            bpms[currentbpm][5] = beatnum
+                                            bpms.set(currentbpm, curbeat=lastallbeatmark)
+                                            bpms.set(currentbpm, beatnum=beatnum)
 
                                         while songstartpoint < allbeatmarksms[lastallbeatmark]:
                                             lastallbeatmark -= 2
-                                            bpms[currentbpm][4] = lastallbeatmark
-
+                                            bpms.set(currentbpm, curbeat=lastallbeatmark)
+                                            
 
 
 
@@ -2319,15 +2303,14 @@ while True:
                                         songstartpoint = 0
                                         songchannel.play(0,0)
                                         visualposition = 0 
-                                        bpms[currentbpm][3] = lastmainbeatmark
-                                        bpms[currentbpm][4] = lastallbeatmark
-                                        bpms[currentbpm][5] = beatnum
+                                        bpms.set(currentbpm, curbeat=lastallbeatmark)
+                                        bpms.set(currentbpm, beatnum=beatnum)
 
                                 else: #not playing
                                     try:
 
                                         lastallbeatmark -= 1
-                                        bpms[currentbpm][4] = lastallbeatmark
+                                        bpms.set(currentbpm, curbeat=lastallbeatmark)
                                         songstartpoint = allbeatmarksms[lastallbeatmark]
                                         songchannel.play(0,songstartpoint/1000)
                                         songchannel.pause()
@@ -2335,11 +2318,10 @@ while True:
 
                                         while songstartpoint < mainbeatmarkms[lastmainbeatmark-1]:
                                             lastmainbeatmark -= 1
-                                            bpms[currentbpm][3] = lastmainbeatmark
                                             beatnum -= 1
                                             if beatnum == 0:
                                                 beatnum = 4
-                                            bpms[currentbpm][5] = beatnum
+                                            bpms.set(currentbpm, beatnum=beatnum)
 
                                         if lastallbeatmark < 0:
                                             lastallbeatmark = 0
@@ -2349,9 +2331,8 @@ while True:
                                             songchannel.play(0,0)
                                             songchannel.pause()
                                             visualposition = 0
-                                            bpms[currentbpm][3] = lastmainbeatmark
-                                            bpms[currentbpm][4] = lastallbeatmark
-                                            bpms[currentbpm][5] = beatnum
+                                            bpms.set(currentbpm, curbeat=lastallbeatmark)
+                                            bpms.set(currentbpm, beatnum=beatnum)
 
 
                                     except pygame.error:
@@ -2371,9 +2352,8 @@ while True:
                                         songchannel.play(0,0)
                                         songchannel.pause()
                                         visualposition = 0
-                                        bpms[currentbpm][3] = lastmainbeatmark
-                                        bpms[currentbpm][4] = lastallbeatmark
-                                        bpms[currentbpm][5] = beatnum
+                                        bpms.set(currentbpm, curbeat=lastallbeatmark)
+                                        bpms.set(currentbpm, beatnum=beatnum)
 
                     if event.button == 5: #scroll wheel down
 
@@ -2414,11 +2394,11 @@ while True:
                         if firstbarmode == 'BPM':
                             if eventpos[0] > 388 and eventpos[0] < 444 and eventpos[1] > 64 and eventpos[1] < 96: #<>
                                 if songbpm > 1:
-                                    if bpms[currentbpm][1] != None:
+                                    if bpms.get(currentbpm, bpm=True) != None:
                                         songbpm -= 1
-                                        bpms[currentbpm][1] = songbpm
-                                        bpmupdate(songbpm)
-                                        markssnap()
+                                        bpms.set(currentbpm, bpm=songbpm)
+                                        bpms.load(currentbpm)
+                                        #markssnap()
                             else:
                                 if playing:
                                     try:
@@ -2426,11 +2406,10 @@ while True:
                                         if songposition == mainbeatmarkms[lastmainbeatmark]:
                                         
                                             lastmainbeatmark += 1
-                                            bpms[currentbpm][3] = lastmainbeatmark
                                             beatnum += 1
                                             if beatnum == 5:
                                                 beatnum = 1
-                                            bpms[currentbpm][5] = beatnum
+                                            bpms.set(currentbpm, beatnum=beatnum)
 
                                         try:
                                             songstartpoint = mainbeatmarkms[lastmainbeatmark]
@@ -2454,7 +2433,7 @@ while True:
                                         if songposition == allbeatmarksms[lastallbeatmark]:
 
                                             lastallbeatmark += 1
-                                            bpms[currentbpm][4] = lastallbeatmark
+                                            bpms.set(currentbpm, curbeat=lastallbeatmark)
 
                                         try:
 
@@ -2465,20 +2444,18 @@ while True:
 
                                             while songstartpoint > mainbeatmarkms[lastmainbeatmark]:
                                                 lastmainbeatmark += 1
-                                                bpms[currentbpm][3] = lastmainbeatmark
                                                 beatnum += 1
                                                 if beatnum == 5:
                                                     beatnum = 1
-                                                bpms[currentbpm][5] = beatnum
+                                                bpms.set(currentbpm, beatnum=beatnum)
 
                                         except IndexError:
                                             while songstartpoint > mainbeatmarkms[lastmainbeatmark-1]:
                                                 lastmainbeatmark += 1
-                                                bpms[currentbpm][3] = lastmainbeatmark
                                                 beatnum += 1
                                                 if beatnum == 5:
                                                     beatnum = 1
-                                                bpms[currentbpm][5] = beatnum
+                                                bpms.set(currentbpm, beatnum=beatnum)
 
                                         except pygame.error:
                                             print('pygameerror')
@@ -2495,11 +2472,11 @@ while True:
                         elif firstbarmode == 'OFFSET':
                             if eventpos[0] > 462 and eventpos[1] > 64 and eventpos[1] < 96: #<>
                                 if offset > 1:
-                                    if bpms[currentbpm][1] != None:
+                                    if bpms.get(currentbpm, bpm=True) != None:
                                         offset -= 5
-                                        bpms[currentbpm][0] = offset
-                                        bpmupdate(songbpm)
-                                        markssnap()
+                                        bpms.set(currentbpm, offset=offset)
+                                        bpms.load(currentbpm)
+                                        #markssnap()
                             else:
                                 if playing:
                                     try:
@@ -2507,11 +2484,10 @@ while True:
                                         if songposition == mainbeatmarkms[lastmainbeatmark]:
                                         
                                             lastmainbeatmark += 1
-                                            bpms[currentbpm][3] = lastmainbeatmark
                                             beatnum += 1
                                             if beatnum == 5:
                                                 beatnum = 1
-                                            bpms[currentbpm][5] = beatnum
+                                            bpms.set(currentbpm, beatnum=beatnum)
 
                                         try:
                                             songstartpoint = mainbeatmarkms[lastmainbeatmark]
@@ -2535,7 +2511,7 @@ while True:
                                         if songposition == allbeatmarksms[lastallbeatmark]:
 
                                             lastallbeatmark += 1
-                                            bpms[currentbpm][4] = lastallbeatmark
+                                            bpms.set(currentbpm, curbeat=lastallbeatmark)
 
                                         try:
 
@@ -2546,19 +2522,17 @@ while True:
 
                                             while songstartpoint > mainbeatmarkms[lastmainbeatmark]:
                                                 lastmainbeatmark += 1
-                                                bpms[currentbpm][3] = lastmainbeatmark
                                                 beatnum += 1
                                                 if beatnum == 5:
                                                     beatnum = 1
-                                                bpms[currentbpm][5] = beatnum
+                                                bpms.set(currentbpm, beatnum=beatnum)
                                         except IndexError:
                                             while songstartpoint > mainbeatmarkms[lastmainbeatmark-1]:
                                                 lastmainbeatmark += 1
-                                                bpms[currentbpm][3] = lastmainbeatmark
                                                 beatnum += 1
                                                 if beatnum == 5:
                                                     beatnum = 1
-                                                bpms[currentbpm][5] = beatnum
+                                                bpms.set(currentbpm, beatnum=beatnum)
 
                                         except pygame.error:
                                             print('pygameerror')
@@ -2613,9 +2587,8 @@ while True:
                                         songchannel.play(0,0)
                                         songchannel.pause()
                                         playing = False
-                                        bpms[currentbpm][3] = lastmainbeatmark
-                                        bpms[currentbpm][4] = lastallbeatmark
-                                        bpms[currentbpm][5] = beatnum
+                                        bpms.set(currentbpm, curbeat=lastallbeatmark)
+                                        bpms.set(currentbpm, beatnum=beatnum)
 
                                         continue
                                 else:
@@ -2629,9 +2602,8 @@ while True:
                                         songchannel.play(0,0)
                                         songchannel.pause()
                                         playing = False
-                                        bpms[currentbpm][3] = lastmainbeatmark
-                                        bpms[currentbpm][4] = lastallbeatmark
-                                        bpms[currentbpm][5] = beatnum
+                                        bpms.set(currentbpm, curbeat=lastallbeatmark)
+                                        bpms.set(currentbpm, beatnum=beatnum)
 
                                         continue
                                 playing = True
